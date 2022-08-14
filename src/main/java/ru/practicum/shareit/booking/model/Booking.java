@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking.dto;
+package ru.practicum.shareit.booking.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,8 +9,8 @@ import java.sql.Date;
 
 @Data
 @AllArgsConstructor
-public class BookingDto {
-    private long id;
+public class Booking {
+    private Long id;
     private Item item;
     private Date start;
     private Date end;
