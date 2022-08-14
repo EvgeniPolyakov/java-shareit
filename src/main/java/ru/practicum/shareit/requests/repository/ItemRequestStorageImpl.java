@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class RequestStorageImpl implements RequestStorage {
+public class ItemRequestStorageImpl implements ItemRequestStorage {
     private final Map<Long, ItemRequest> requests = new HashMap<>();
     private final ItemRequestIdGenerator idGenerator;
 
     @Autowired
-    public RequestStorageImpl(ItemRequestIdGenerator idGenerator) {
+    public ItemRequestStorageImpl(ItemRequestIdGenerator idGenerator) {
         this.idGenerator = idGenerator;
     }
 

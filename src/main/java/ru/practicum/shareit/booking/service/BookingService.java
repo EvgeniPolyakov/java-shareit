@@ -3,9 +3,8 @@ package ru.practicum.shareit.booking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingDto;
 import ru.practicum.shareit.booking.repository.BookingStorage;
 
 import java.util.List;
@@ -21,14 +20,25 @@ public class BookingService {
         return BookingMapper.toBookingDtoList(bookingStorage.getAll());
     }
 
-    public BookingDto add(Booking booking) {
+    public BookingDto add(BookingDto bookingDto) {
+        Booking booking = BookingMapper.toBooking(bookingDto);
         log.info("Добавление нового бронирования с id {}", booking.getId());
         return BookingMapper.toBookingDto(bookingStorage.add(booking));
     }
 
-    public BookingDto update(Booking booking) {
-        log.info("Обновление бронирования с id {}", booking.getId());
-        return BookingMapper.toBookingDto(bookingStorage.update(booking));
+    public BookingDto update(Long id, BookingDto bookingDto) {
+        Booking bookingForUpdate = bookingStorage.getById(id);
+        if (bookingDto.getItem() != null) {
+            bookingForUpdate.setItem(bookingDto.getItem());
+        }
+        if (bookingDto.getStart() != null) {
+            bookingForUpdate.setStart(bookingDto.getStart());
+        }
+        if (bookingDto.getEnd() != null) {
+            bookingForUpdate.setEnd(bookingDto.getEnd());
+        }
+        log.info("Обновление бронирования с id {}", id);
+        return BookingMapper.toBookingDto(bookingStorage.update(bookingForUpdate));
     }
 
     public void delete(Long id) {

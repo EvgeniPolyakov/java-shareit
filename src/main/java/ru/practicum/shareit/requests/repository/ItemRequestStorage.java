@@ -4,7 +4,7 @@ import ru.practicum.shareit.requests.model.ItemRequest;
 
 import java.util.List;
 
-public interface RequestStorage {
+public interface ItemRequestStorage {
 
     List<ItemRequest> getAll();
 

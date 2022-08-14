@@ -6,8 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.model.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserStorage;
 
@@ -24,21 +23,22 @@ public class UserService {
         return UserMapper.toUserDtoList(userStorage.getAll());
     }
 
-    public UserDto add(User user) {
-        validateEmail(user);
+    public UserDto add(UserDto userDto) {
+        validateEmail(userDto);
+        User user = UserMapper.toUser(userDto);
         log.info("Добавление нового пользователя с id {}", user.getId());
         return UserMapper.toUserDto(userStorage.add(user));
     }
 
-    public UserDto update(Long id, User user) {
+    public UserDto update(Long id, UserDto userDto) {
         checkUserId(id);
         User userForUpdate = userStorage.getById(id);
-        if (user.getEmail() != null) {
-            isEmailFree(user);
-            userForUpdate.setEmail(user.getEmail());
+        if (userDto.getEmail() != null) {
+            isEmailFree(userDto);
+            userForUpdate.setEmail(userDto.getEmail());
         }
-        if (user.getName() != null) {
-            userForUpdate.setName(user.getName());
+        if (userDto.getName() != null) {
+            userForUpdate.setName(userDto.getName());
         }
         log.info("Обновление пользователя с id {}", id);
         return UserMapper.toUserDto(userStorage.update(id, userForUpdate));
@@ -62,7 +62,7 @@ public class UserService {
         }
     }
 
-    private void validateEmail(User user) {
+    private void validateEmail(UserDto user) {
         if (user.getEmail() == null) {
             throw new BadRequestException("Не указана почта.");
         }
@@ -72,8 +72,8 @@ public class UserService {
         isEmailFree(user);
     }
 
-    private void isEmailFree(User user) {
-        if (userStorage.isEmailFree(user)) {
+    private void isEmailFree(UserDto userDto) {
+        if (userStorage.isEmailFree(userDto.getEmail())) {
             throw new ValidationException("Этот электронный адрес уже зарегистрирован.");
         }
     }
