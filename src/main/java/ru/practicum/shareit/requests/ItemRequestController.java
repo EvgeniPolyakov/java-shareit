@@ -3,8 +3,7 @@ package ru.practicum.shareit.requests;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.requests.dto.ItemRequestDto;
-import ru.practicum.shareit.requests.model.ItemRequest;
+import ru.practicum.shareit.requests.model.ItemRequestDto;
 import ru.practicum.shareit.requests.service.ItemRequestService;
 
 import javax.validation.Valid;
@@ -24,15 +23,15 @@ public class ItemRequestController {
     }
 
     @PostMapping
-    public ItemRequestDto add(@Valid @RequestBody ItemRequest request) {
+    public ItemRequestDto add(@Valid @RequestBody ItemRequestDto request) {
         ItemRequestDto addedRequest = itemRequestService.add(request);
         log.info("Получен запрос POST (createRequest). Добавлен запрос на вещь: {}", request);
         return addedRequest;
     }
 
     @PatchMapping("/{id}")
-    public ItemRequestDto update(@Valid @RequestBody ItemRequest request) {
-        ItemRequestDto updatedRequest = itemRequestService.update(request);
+    public ItemRequestDto update(@PathVariable("id") Long id, @Valid @RequestBody ItemRequestDto request) {
+        ItemRequestDto updatedRequest = itemRequestService.update(id, request);
         log.info("Получен запрос PUT (updateRequest). Добавлен запрос на вещь: {}", request);
         return updatedRequest;
     }

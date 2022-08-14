@@ -15,5 +15,5 @@ public interface UserStorage {
 
     void delete(Long id);
 
-    boolean isEmailFree(User user);
+    boolean isEmailFree(String email);
 }

@@ -3,8 +3,7 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
 
 import javax.validation.Valid;
@@ -24,15 +23,15 @@ public class BookingController {
     }
 
     @PostMapping
-    public BookingDto add(@Valid @RequestBody Booking booking) {
+    public BookingDto add(@Valid @RequestBody BookingDto booking) {
         log.info("Получен запрос POST (createBooking). Добавлено бронирование: {}", booking);
         return bookingService.add(booking);
     }
 
     @PatchMapping("/{id}")
-    public BookingDto update(@Valid @RequestBody Booking booking) {
+    public BookingDto update(@PathVariable("id") Long id, @Valid @RequestBody BookingDto booking) {
         log.info("Получен запрос PUT (updateBooking). Добавлено бронирование: {}", booking);
-        return bookingService.update(booking);
+        return bookingService.update(id, booking);
     }
 
     @GetMapping("/{id}")

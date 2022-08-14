@@ -6,9 +6,8 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.ItemDto;
 import ru.practicum.shareit.item.repository.ItemStorage;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -29,29 +28,29 @@ public class ItemService {
         return ItemMapper.toItemDtoList(items);
     }
 
-    public ItemDto add(Long userId, Item item) {
+    public ItemDto add(Long userId, ItemDto itemDto) {
         userService.checkUserId(userId);
-        validateItem(item);
-        item.setOwner(userId);
+        validateItem(itemDto);
+        Item item = ItemMapper.toItem(itemDto, userId);
         log.info("Добавление новой вещи с id {}", item.getId());
         return ItemMapper.toItemDto(itemStorage.add(item));
     }
 
-    public ItemDto update(Long itemId, Long userId, Item item) {
+    public ItemDto update(Long itemId, Long userId, ItemDto itemDto) {
         userService.checkUserId(userId);
         checkItemId(itemId);
         checkItemOwner(itemId, userId);
         Item itemForUpdate = itemStorage.get(itemId);
-        if (item.getDescription() != null) {
-            validateStringField(item.getDescription());
-            itemForUpdate.setDescription(item.getDescription());
+        if (itemDto.getDescription() != null) {
+            validateStringField(itemDto.getDescription());
+            itemForUpdate.setDescription(itemDto.getDescription());
         }
-        if (item.getName() != null) {
-            validateStringField(item.getName());
-            itemForUpdate.setName(item.getName());
+        if (itemDto.getName() != null) {
+            validateStringField(itemDto.getName());
+            itemForUpdate.setName(itemDto.getName());
         }
-        if (item.getAvailable() != null) {
-            itemForUpdate.setAvailable(item.getAvailable());
+        if (itemDto.getAvailable() != null) {
+            itemForUpdate.setAvailable(itemDto.getAvailable());
         }
         log.info("Обновление вещи с id {}", itemId);
         return ItemMapper.toItemDto(itemStorage.update(itemId, itemForUpdate));
@@ -92,13 +91,13 @@ public class ItemService {
         }
     }
 
-    private void validateItem(Item item) {
+    private void validateItem(ItemDto item) {
         checkRequiredFields(item);
         validateStringField(item.getName());
         validateStringField(item.getDescription());
     }
 
-    private void checkRequiredFields(Item item) {
+    private void checkRequiredFields(ItemDto item) {
         if (item.getAvailable() == null) {
             throw new BadRequestException("Не указано наличие вещи.");
         }

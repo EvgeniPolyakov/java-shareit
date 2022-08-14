@@ -49,11 +49,11 @@ public class UserStorageImpl implements UserStorage {
         users.remove(id);
     }
 
-    public boolean isEmailFree(User user) {
+    public boolean isEmailFree(String email) {
         return users.values()
                 .stream()
                 .map(User::getEmail)
-                .anyMatch(s -> s.contains(user.getEmail()));
+                .anyMatch(s -> s.contains(email));
     }
 
     private void generateId(User user) {

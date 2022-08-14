@@ -3,8 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -23,7 +22,7 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestBody Item item) {
+    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestBody ItemDto item) {
         log.info("Получен запрос POST (createItem). Добавлена вещь: {}", item);
         return itemService.add(userId, item);
     }
@@ -31,7 +30,7 @@ public class ItemController {
     @PatchMapping("/{id}")
     public ItemDto update(@PathVariable("id") Long itemId,
                           @RequestHeader("X-Sharer-User-Id") Long userId,
-                          @RequestBody Item item) {
+                          @RequestBody ItemDto item) {
         ItemDto updatedItem = itemService.update(itemId, userId, item);
         log.info("Получен запрос PUT (updateItem). Добавлена вещь: {}", updatedItem);
         return updatedItem;
