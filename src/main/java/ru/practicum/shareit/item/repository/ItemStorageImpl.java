@@ -58,7 +58,7 @@ public class ItemStorageImpl implements ItemStorage {
     }
 
     @Override
-    public boolean checkItemOwner(Long itemId, Long userId) {
+    public boolean isItemOwner(Long itemId, Long userId) {
         return get(itemId).getOwner().equals(userId);
     }
 

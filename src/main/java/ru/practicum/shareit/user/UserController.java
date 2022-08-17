@@ -2,8 +2,12 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.Create;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.model.UserDto;
+import ru.practicum.shareit.user.service.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
@@ -19,27 +23,27 @@ public class UserController {
     @GetMapping
     public List<UserDto> getAll() {
         log.info("Получен запрос GET /users");
-        return userService.getAll();
+        return UserMapper.toUserDtoList(userService.getAll());
     }
 
     @PostMapping
-    public UserDto add(@Valid @RequestBody UserDto user) {
-        UserDto addedUser = userService.add(user);
+    public UserDto add(@Validated({Create.class}) @RequestBody UserDto user) {
+        User addedUser = userService.add(user);
         log.info("Получен запрос POST (createUser). Добавлен пользователь: {}", user);
-        return addedUser;
+        return UserMapper.toUserDto(addedUser);
     }
 
     @PatchMapping("/{id}")
     public UserDto update(@PathVariable("id") Long id, @Valid @RequestBody UserDto user) {
-        UserDto updatedUser = userService.update(id, user);
+        User updatedUser = userService.update(id, user);
         log.info("Получен запрос PUT (updateUser). Добавлен пользователь: {}", updatedUser);
-        return updatedUser;
+        return UserMapper.toUserDto(updatedUser);
     }
 
     @GetMapping("/{id}")
     public UserDto getById(@PathVariable("id") Long id) {
         log.info("Получен запрос GET /users по id {}", id);
-        return userService.getById(id);
+        return UserMapper.toUserDto(userService.getById(id));
     }
 
     @DeleteMapping("/{id}")

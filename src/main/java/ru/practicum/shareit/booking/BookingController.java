@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.model.BookingDto;
+import ru.practicum.shareit.booking.service.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
 
 import javax.validation.Valid;
@@ -19,25 +20,25 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> getAll() {
         log.info("Получен запрос GET /bookings");
-        return bookingService.getAll();
+        return BookingMapper.toBookingDtoList(bookingService.getAll());
     }
 
     @PostMapping
     public BookingDto add(@Valid @RequestBody BookingDto booking) {
         log.info("Получен запрос POST (createBooking). Добавлено бронирование: {}", booking);
-        return bookingService.add(booking);
+        return BookingMapper.toBookingDto(bookingService.add(booking));
     }
 
     @PatchMapping("/{id}")
     public BookingDto update(@PathVariable("id") Long id, @Valid @RequestBody BookingDto booking) {
         log.info("Получен запрос PUT (updateBooking). Добавлено бронирование: {}", booking);
-        return bookingService.update(id, booking);
+        return BookingMapper.toBookingDto(bookingService.update(id, booking));
     }
 
     @GetMapping("/{id}")
     public BookingDto getById(@PathVariable("id") Long id) {
         log.info("Получен запрос GET /bookings по id {}", id);
-        return bookingService.getById(id);
+        return BookingMapper.toBookingDto(bookingService.getById(id));
     }
 
     @DeleteMapping("/{id}")

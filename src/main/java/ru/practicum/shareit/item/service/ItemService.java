@@ -21,22 +21,20 @@ public class ItemService {
     private final ItemStorage itemStorage;
     private final UserService userService;
 
-    public List<ItemDto> getItemsByUserId(Long userId) {
+    public List<Item> getItemsByUserId(Long userId) {
         userService.checkUserId(userId);
         log.info("Получение списка всех вещей пользователя {}", userId);
-        List<Item> items = itemStorage.getItemsByUserId(userId);
-        return ItemMapper.toItemDtoList(items);
+        return itemStorage.getItemsByUserId(userId);
     }
 
-    public ItemDto add(Long userId, ItemDto itemDto) {
+    public Item add(Long userId, ItemDto itemDto) {
         userService.checkUserId(userId);
-        validateItem(itemDto);
         Item item = ItemMapper.toItem(itemDto, userId);
         log.info("Добавление новой вещи с id {}", item.getId());
-        return ItemMapper.toItemDto(itemStorage.add(item));
+        return itemStorage.add(item);
     }
 
-    public ItemDto update(Long itemId, Long userId, ItemDto itemDto) {
+    public Item update(Long itemId, Long userId, ItemDto itemDto) {
         userService.checkUserId(userId);
         checkItemId(itemId);
         checkItemOwner(itemId, userId);
@@ -53,22 +51,21 @@ public class ItemService {
             itemForUpdate.setAvailable(itemDto.getAvailable());
         }
         log.info("Обновление вещи с id {}", itemId);
-        return ItemMapper.toItemDto(itemStorage.update(itemId, itemForUpdate));
+        return itemStorage.update(itemId, itemForUpdate);
     }
 
-    public ItemDto get(Long userId, Long itemId) {
+    public Item get(Long userId, Long itemId) {
         checkItemId(itemId);
         userService.checkUserId(userId);
         log.info("Получение вещи с id {}", itemId);
-        return ItemMapper.toItemDto(itemStorage.get(itemId));
+        return itemStorage.get(itemId);
     }
 
-    public List<ItemDto> search(String text) {
+    public List<Item> search(String text) {
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        List<Item> items = itemStorage.search(text);
-        return ItemMapper.toItemDtoList(items);
+        return itemStorage.search(text);
     }
 
     private void checkItemId(Long itemId) {
@@ -86,26 +83,8 @@ public class ItemService {
     }
 
     private void checkItemOwner(Long itemId, Long userId) {
-        if (!(itemStorage.checkItemOwner(itemId, userId))) {
+        if (!(itemStorage.isItemOwner(itemId, userId))) {
             throw new ForbiddenException(String.format("У пользователя %s нет доступа к вещи %s.", itemId, userId));
-        }
-    }
-
-    private void validateItem(ItemDto item) {
-        checkRequiredFields(item);
-        validateStringField(item.getName());
-        validateStringField(item.getDescription());
-    }
-
-    private void checkRequiredFields(ItemDto item) {
-        if (item.getAvailable() == null) {
-            throw new BadRequestException("Не указано наличие вещи.");
-        }
-        if (item.getName() == null) {
-            throw new BadRequestException("Не указано название вещи.");
-        }
-        if (item.getDescription() == null) {
-            throw new BadRequestException("Не указано описание вещи.");
         }
     }
 

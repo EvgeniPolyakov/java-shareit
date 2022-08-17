@@ -15,18 +15,18 @@ import java.util.List;
 public class BookingService {
     private final BookingStorage bookingStorage;
 
-    public List<BookingDto> getAll() {
+    public List<Booking> getAll() {
         log.info("Получение списка всех бронирований");
-        return BookingMapper.toBookingDtoList(bookingStorage.getAll());
+        return bookingStorage.getAll();
     }
 
-    public BookingDto add(BookingDto bookingDto) {
+    public Booking add(BookingDto bookingDto) {
         Booking booking = BookingMapper.toBooking(bookingDto);
         log.info("Добавление нового бронирования с id {}", booking.getId());
-        return BookingMapper.toBookingDto(bookingStorage.add(booking));
+        return bookingStorage.add(booking);
     }
 
-    public BookingDto update(Long id, BookingDto bookingDto) {
+    public Booking update(Long id, BookingDto bookingDto) {
         Booking bookingForUpdate = bookingStorage.getById(id);
         if (bookingDto.getItem() != null) {
             bookingForUpdate.setItem(bookingDto.getItem());
@@ -38,7 +38,7 @@ public class BookingService {
             bookingForUpdate.setEnd(bookingDto.getEnd());
         }
         log.info("Обновление бронирования с id {}", id);
-        return BookingMapper.toBookingDto(bookingStorage.update(bookingForUpdate));
+        return bookingStorage.update(bookingForUpdate);
     }
 
     public void delete(Long id) {
@@ -46,8 +46,8 @@ public class BookingService {
         bookingStorage.delete(id);
     }
 
-    public BookingDto getById(Long id) {
+    public Booking getById(Long id) {
         log.info("Получение бронирования с id {}", id);
-        return BookingMapper.toBookingDto(bookingStorage.getById(id));
+        return bookingStorage.getById(id);
     }
 }

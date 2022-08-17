@@ -15,7 +15,7 @@ public interface ItemStorage {
 
     void delete(Long id);
 
-    boolean checkItemOwner(Long itemId, Long userId);
+    boolean isItemOwner(Long itemId, Long userId);
 
     List<Item> search(String text);
 }

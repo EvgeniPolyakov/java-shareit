@@ -15,18 +15,18 @@ import java.util.List;
 public class ItemRequestService {
     private final ItemRequestStorage requestStorage;
 
-    public List<ItemRequestDto> getAll() {
+    public List<ItemRequest> getAll() {
         log.info("Получение списка всех заявок");
-        return ItemRequestMapper.toItemRequestDtoList(requestStorage.getAll());
+        return requestStorage.getAll();
     }
 
-    public ItemRequestDto add(ItemRequestDto requestDto) {
+    public ItemRequest add(ItemRequestDto requestDto) {
         ItemRequest request = ItemRequestMapper.toItemRequest(requestDto);
         log.info("Добавление новой заявки с id {}", request.getId());
-        return ItemRequestMapper.toItemRequestDto(requestStorage.add(request));
+        return requestStorage.add(request);
     }
 
-    public ItemRequestDto update(Long id, ItemRequestDto requestDto) {
+    public ItemRequest update(Long id, ItemRequestDto requestDto) {
         ItemRequest requestForUpdate = requestStorage.getById(id);
         if (requestDto.getDescription() != null) {
             requestForUpdate.setDescription(requestDto.getDescription());
@@ -35,7 +35,7 @@ public class ItemRequestService {
             requestForUpdate.setRequester(requestDto.getRequester());
         }
         log.info("Обновление заявки с id {}", id);
-        return ItemRequestMapper.toItemRequestDto(requestStorage.update(requestForUpdate));
+        return requestStorage.update(requestForUpdate);
     }
 
     public void delete(Long id) {
@@ -43,8 +43,8 @@ public class ItemRequestService {
         requestStorage.delete(id);
     }
 
-    public ItemRequestDto getById(Long id) {
+    public ItemRequest getById(Long id) {
         log.info("Получение бронирования с id {}", id);
-        return ItemRequestMapper.toItemRequestDto(requestStorage.getById(id));
+        return requestStorage.getById(id);
     }
 }
