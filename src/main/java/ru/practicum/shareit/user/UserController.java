@@ -27,14 +27,15 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto add(@Validated({Create.class}) @RequestBody UserDto user) {
-        User addedUser = userService.add(user);
+    public UserDto add(@Validated({Create.class}) @RequestBody UserDto userDto) {
+        User user = UserMapper.toUser(userDto);
         log.info("Получен запрос POST (createUser). Добавлен пользователь: {}", user);
-        return UserMapper.toUserDto(addedUser);
+        return UserMapper.toUserDto(userService.add(user));
     }
 
     @PatchMapping("/{id}")
-    public UserDto update(@PathVariable("id") Long id, @Valid @RequestBody UserDto user) {
+    public UserDto update(@PathVariable("id") Long id, @Valid @RequestBody UserDto userDto) {
+        User user = UserMapper.toUser(userDto);
         User updatedUser = userService.update(id, user);
         log.info("Получен запрос PUT (updateUser). Добавлен пользователь: {}", updatedUser);
         return UserMapper.toUserDto(updatedUser);

@@ -29,16 +29,17 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto add(@Validated({Create.class}) @RequestBody ItemDto item, @RequestHeader(USER_HEADER) Long userId) {
-        log.info("Получен запрос POST (createItem). Добавлена вещь: {}", item);
-        Item addedItem = itemService.add(userId, item);
-        return ItemMapper.toItemDto(addedItem);
+    public ItemDto add(@Validated({Create.class}) @RequestBody ItemDto itemDto, @RequestHeader(USER_HEADER) Long userId) {
+        Item item = ItemMapper.toItem(itemDto, userId);
+        log.info("Получен запрос POST (createItem). Добавлена вещь: {}", itemDto);
+        return ItemMapper.toItemDto(itemService.add(userId, item));
     }
 
     @PatchMapping("/{id}")
     public ItemDto update(@PathVariable("id") Long itemId,
                           @RequestHeader(USER_HEADER) Long userId,
-                          @RequestBody ItemDto item) {
+                          @RequestBody ItemDto itemDto) {
+        Item item = ItemMapper.toItem(itemDto, userId);
         Item updatedItem = itemService.update(itemId, userId, item);
         log.info("Получен запрос PUT (updateItem). Добавлена вещь: {}", updatedItem);
         return ItemMapper.toItemDto(updatedItem);

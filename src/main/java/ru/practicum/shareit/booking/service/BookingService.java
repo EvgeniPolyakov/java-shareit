@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.BookingDto;
 import ru.practicum.shareit.booking.repository.BookingStorage;
 
 import java.util.List;
@@ -20,22 +19,21 @@ public class BookingService {
         return bookingStorage.getAll();
     }
 
-    public Booking add(BookingDto bookingDto) {
-        Booking booking = BookingMapper.toBooking(bookingDto);
+    public Booking add(Booking booking) {
         log.info("Добавление нового бронирования с id {}", booking.getId());
         return bookingStorage.add(booking);
     }
 
-    public Booking update(Long id, BookingDto bookingDto) {
+    public Booking update(Long id, Booking booking) {
         Booking bookingForUpdate = bookingStorage.getById(id);
-        if (bookingDto.getItem() != null) {
-            bookingForUpdate.setItem(bookingDto.getItem());
+        if (booking.getItem() != null) {
+            bookingForUpdate.setItem(booking.getItem());
         }
-        if (bookingDto.getStart() != null) {
-            bookingForUpdate.setStart(bookingDto.getStart());
+        if (booking.getStart() != null) {
+            bookingForUpdate.setStart(booking.getStart());
         }
-        if (bookingDto.getEnd() != null) {
-            bookingForUpdate.setEnd(bookingDto.getEnd());
+        if (booking.getEnd() != null) {
+            bookingForUpdate.setEnd(booking.getEnd());
         }
         log.info("Обновление бронирования с id {}", id);
         return bookingStorage.update(bookingForUpdate);

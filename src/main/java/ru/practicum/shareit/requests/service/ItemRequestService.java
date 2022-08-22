@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.requests.model.ItemRequest;
-import ru.practicum.shareit.requests.model.ItemRequestDto;
 import ru.practicum.shareit.requests.repository.ItemRequestStorage;
 
 import java.util.List;
@@ -20,19 +19,18 @@ public class ItemRequestService {
         return requestStorage.getAll();
     }
 
-    public ItemRequest add(ItemRequestDto requestDto) {
-        ItemRequest request = ItemRequestMapper.toItemRequest(requestDto);
+    public ItemRequest add(ItemRequest request) {
         log.info("Добавление новой заявки с id {}", request.getId());
         return requestStorage.add(request);
     }
 
-    public ItemRequest update(Long id, ItemRequestDto requestDto) {
+    public ItemRequest update(Long id, ItemRequest request) {
         ItemRequest requestForUpdate = requestStorage.getById(id);
-        if (requestDto.getDescription() != null) {
-            requestForUpdate.setDescription(requestDto.getDescription());
+        if (request.getDescription() != null) {
+            requestForUpdate.setDescription(request.getDescription());
         }
-        if (requestDto.getRequester() != null) {
-            requestForUpdate.setRequester(requestDto.getRequester());
+        if (request.getRequester() != null) {
+            requestForUpdate.setRequester(request.getRequester());
         }
         log.info("Обновление заявки с id {}", id);
         return requestStorage.update(requestForUpdate);

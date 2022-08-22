@@ -7,7 +7,6 @@ import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemDto;
 import ru.practicum.shareit.item.repository.ItemStorage;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -27,28 +26,27 @@ public class ItemService {
         return itemStorage.getItemsByUserId(userId);
     }
 
-    public Item add(Long userId, ItemDto itemDto) {
+    public Item add(Long userId, Item item) {
         userService.checkUserId(userId);
-        Item item = ItemMapper.toItem(itemDto, userId);
         log.info("Добавление новой вещи с id {}", item.getId());
         return itemStorage.add(item);
     }
 
-    public Item update(Long itemId, Long userId, ItemDto itemDto) {
+    public Item update(Long itemId, Long userId, Item item) {
         userService.checkUserId(userId);
         checkItemId(itemId);
         checkItemOwner(itemId, userId);
         Item itemForUpdate = itemStorage.get(itemId);
-        if (itemDto.getDescription() != null) {
-            validateStringField(itemDto.getDescription());
-            itemForUpdate.setDescription(itemDto.getDescription());
+        if (item.getDescription() != null) {
+            validateStringField(item.getDescription());
+            itemForUpdate.setDescription(item.getDescription());
         }
-        if (itemDto.getName() != null) {
-            validateStringField(itemDto.getName());
-            itemForUpdate.setName(itemDto.getName());
+        if (item.getName() != null) {
+            validateStringField(item.getName());
+            itemForUpdate.setName(item.getName());
         }
-        if (itemDto.getAvailable() != null) {
-            itemForUpdate.setAvailable(itemDto.getAvailable());
+        if (item.getAvailable() != null) {
+            itemForUpdate.setAvailable(item.getAvailable());
         }
         log.info("Обновление вещи с id {}", itemId);
         return itemStorage.update(itemId, itemForUpdate);

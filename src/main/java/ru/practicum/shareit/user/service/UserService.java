@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.model.UserDto;
 import ru.practicum.shareit.user.repository.UserStorage;
 
 import java.util.List;
@@ -22,22 +21,21 @@ public class UserService {
         return userStorage.getAll();
     }
 
-    public User add(UserDto userDto) {
-        isEmailFree(userDto);
-        User user = UserMapper.toUser(userDto);
+    public User add(User user) {
+        isEmailFree(user);
         log.info("Добавление нового пользователя с id {}", user.getId());
         return userStorage.add(user);
     }
 
-    public User update(Long id, UserDto userDto) {
+    public User update(Long id, User user) {
         checkUserId(id);
         User userForUpdate = userStorage.getById(id);
-        if (userDto.getEmail() != null) {
-            isEmailFree(userDto);
-            userForUpdate.setEmail(userDto.getEmail());
+        if (user.getEmail() != null) {
+            isEmailFree(user);
+            userForUpdate.setEmail(user.getEmail());
         }
-        if (userDto.getName() != null) {
-            userForUpdate.setName(userDto.getName());
+        if (user.getName() != null) {
+            userForUpdate.setName(user.getName());
         }
         log.info("Обновление пользователя с id {}", id);
         return userStorage.update(id, userForUpdate);
@@ -61,8 +59,8 @@ public class UserService {
         }
     }
 
-    private void isEmailFree(UserDto userDto) {
-        if (userStorage.isEmailFree(userDto.getEmail())) {
+    private void isEmailFree(User user) {
+        if (userStorage.isEmailFree(user.getEmail())) {
             throw new ValidationException("Этот электронный адрес уже зарегистрирован.");
         }
     }

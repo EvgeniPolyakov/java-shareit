@@ -25,14 +25,15 @@ public class ItemRequestController {
     }
 
     @PostMapping
-    public ItemRequestDto add(@Valid @RequestBody ItemRequestDto request) {
-        ItemRequest addedRequest = itemRequestService.add(request);
+    public ItemRequestDto add(@Valid @RequestBody ItemRequestDto requestDto) {
+        ItemRequest request = ItemRequestMapper.toItemRequest(requestDto);
         log.info("Получен запрос POST (createRequest). Добавлен запрос на вещь: {}", request);
-        return ItemRequestMapper.toItemRequestDto(addedRequest);
+        return ItemRequestMapper.toItemRequestDto(itemRequestService.add(request));
     }
 
     @PatchMapping("/{id}")
-    public ItemRequestDto update(@PathVariable("id") Long id, @Valid @RequestBody ItemRequestDto request) {
+    public ItemRequestDto update(@PathVariable("id") Long id, @Valid @RequestBody ItemRequestDto requestDto) {
+        ItemRequest request = ItemRequestMapper.toItemRequest(requestDto);
         ItemRequest updatedRequest = itemRequestService.update(id, request);
         log.info("Получен запрос PUT (updateRequest). Добавлен запрос на вещь: {}", request);
         return ItemRequestMapper.toItemRequestDto(updatedRequest);
