@@ -1,35 +1,35 @@
 package ru.practicum.shareit.booking.service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.BookingDto;
+import ru.practicum.shareit.booking.model.IncomingBookingDto;
+import ru.practicum.shareit.booking.model.OutgoingBookingDto;
+import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.service.UserService;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+@Component
+@RequiredArgsConstructor
 public class BookingMapper {
+    private final ItemService itemService;
+    private final UserService userService;
 
-    public static BookingDto toBookingDto(Booking booking) {
-        return new BookingDto(
+    public static OutgoingBookingDto toOutgoingBookingDto(Booking booking) {
+        return new OutgoingBookingDto(
                 booking.getId(),
-                booking.getItem(),
-                booking.getStart(),
-                booking.getEnd()
+                booking.getBooker().getId()
         );
     }
 
-    public static List<BookingDto> toBookingDtoList(List<Booking> bookings) {
-        return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-    }
-
-    public static Booking toBooking(BookingDto bookingDto) {
+    public Booking toBooking(IncomingBookingDto bookingDto, Long userId) {
         return new Booking(
-                bookingDto.getId(),
-                bookingDto.getItem(),
+                null,
+                itemService.findById(bookingDto.getItemId()),
                 bookingDto.getStart(),
                 bookingDto.getEnd(),
-                null, // в будущем - Long booker
-                null, // в будущем - Status status,
-                null // в будущем - String review
+                userService.findById(userId),
+                Status.WAITING
         );
     }
 }

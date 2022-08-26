@@ -1,35 +1,56 @@
 package ru.practicum.shareit.item.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import ru.practicum.shareit.booking.service.BookingMapper;
+import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.item.model.IncomingItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemDto;
+import ru.practicum.shareit.item.model.OutgoingItemDto;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 public class ItemMapper {
+    private final UserService userService;
+    private final ItemService itemService;
+    private final BookingService bookingService;
 
-    public static ItemDto toItemDto(Item item) {
-        return new ItemDto(
+    @Autowired
+    public ItemMapper(UserService userService, ItemService itemService, BookingService bookingService) {
+        this.userService = userService;
+        this.itemService = itemService;
+        this.bookingService = bookingService;
+    }
+
+    public OutgoingItemDto toOutgoingItemDto(Item item, Long userId) {
+        return new OutgoingItemDto(
                 item.getId(),
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getRequest() != null ? item.getRequest() : null
+                bookingService.getLastBooking(item.getId(), userId) != null ?
+                        BookingMapper.toOutgoingBookingDto(bookingService.getLastBooking(item.getId(), userId)) : null,
+                bookingService.getNextBooking(item.getId(), userId) != null ?
+                        BookingMapper.toOutgoingBookingDto(bookingService.getNextBooking(item.getId(), userId)) : null,
+                CommentMapper.toOutgoingCommentDtoList(itemService.findCommentsById(item.getId()))
         );
     }
 
-    public static List<ItemDto> toItemDtoList(List<Item> items) {
-        return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+    public List<OutgoingItemDto> toOutgoingItemDtoList(List<Item> items, Long userId) {
+        return items.stream().map((Item item) -> toOutgoingItemDto(item, userId)).collect(Collectors.toList());
     }
 
-    public static Item toItem(ItemDto itemDto, Long userId) {
+    public Item toItem(IncomingItemDto incomingItemDto, Long userId) {
         return new Item(
-                itemDto.getId(),
-                itemDto.getName(),
-                itemDto.getDescription(),
-                itemDto.getAvailable(),
-                userId,
-                itemDto.getRequest() != null ? itemDto.getRequest() : null
+                null,
+                incomingItemDto.getName(),
+                incomingItemDto.getDescription(),
+                incomingItemDto.getAvailable(),
+                userService.findById(userId),
+                null // логика request будет написана позже
         );
     }
 }
