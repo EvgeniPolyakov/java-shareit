@@ -1,26 +1,16 @@
 package ru.practicum.shareit.item.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.IncomingCommentDto;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.OutgoingCommentDto;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
 public class CommentMapper {
-    private final UserService userService;
-    private final ItemService itemService;
-
-    @Autowired
-    public CommentMapper(UserService userService, ItemService itemService) {
-        this.userService = userService;
-        this.itemService = itemService;
-    }
 
     public static OutgoingCommentDto toOutgoingCommentDto(Comment comment) {
         return new OutgoingCommentDto(
@@ -35,11 +25,11 @@ public class CommentMapper {
         return comments.stream().map(CommentMapper::toOutgoingCommentDto).collect(Collectors.toList());
     }
 
-    public Comment toComment(IncomingCommentDto incomingCommentDto, Long itemId, Long userId) {
+    public static Comment toComment(IncomingCommentDto incomingCommentDto, Item item, User user) {
         return new Comment(
                 null,
-                itemService.findById(itemId),
-                userService.findById(userId),
+                item,
+                user,
                 incomingCommentDto.getText(),
                 LocalDateTime.now()
         );

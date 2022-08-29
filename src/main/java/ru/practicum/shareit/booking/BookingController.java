@@ -9,6 +9,9 @@ import ru.practicum.shareit.booking.service.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.common.ValidationService;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -19,7 +22,8 @@ import java.util.List;
 @RequestMapping(path = "/bookings")
 public class BookingController {
     private final BookingService bookingService;
-    private final BookingMapper bookingMapper;
+    private final ItemService itemService;
+    private final UserService userService;
     private final ValidationService validationService;
 
     private static final String USER_HEADER = "X-Sharer-User-Id";
@@ -35,7 +39,7 @@ public class BookingController {
 
     @GetMapping("/owner")
     public List<Booking> getAllForItemsOwned(@RequestHeader(USER_HEADER) Long userId,
-                                       @RequestParam(defaultValue = STATUS_VALUE_ALL) String state) {
+                                             @RequestParam(defaultValue = STATUS_VALUE_ALL) String state) {
         log.info("Получен запрос GET по пути /bookings/owner");
         validationService.validateUser(userId);
         return bookingService.getBookingsForItemsOwned(userId, state);
@@ -52,8 +56,9 @@ public class BookingController {
     @PostMapping
     public Booking add(@Valid @RequestBody IncomingBookingDto bookingDto, @RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос POST по пути /bookings для добавления бронирования: {}", bookingDto);
-        Booking booking = bookingMapper.toBooking(bookingDto, userId);
-        Item item = booking.getItem();
+        Item item = itemService.findById(bookingDto.getItemId());
+        User user = userService.findById(userId);
+        Booking booking = BookingMapper.toBooking(bookingDto, item, user);
         validationService.validateUser(userId);
         validationService.validateBooking(booking, userId, item);
         return bookingService.save(booking, userId);

@@ -4,16 +4,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.OutgoingBookingDto;
+import ru.practicum.shareit.booking.service.BookingMapper;
+import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.common.Create;
 import ru.practicum.shareit.common.ValidationService;
 import ru.practicum.shareit.item.model.*;
 import ru.practicum.shareit.item.service.CommentMapper;
 import ru.practicum.shareit.item.service.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -21,8 +28,8 @@ import java.util.List;
 @RequestMapping("/items")
 public class ItemController {
     private final ItemService itemService;
-    private final ItemMapper itemMapper;
-    private final CommentMapper commentMapper;
+    private final UserService userService;
+    private final BookingService bookingService;
     private final ValidationService validationService;
 
     private static final String USER_HEADER = "X-Sharer-User-Id";
@@ -31,14 +38,15 @@ public class ItemController {
     public List<OutgoingItemDto> getAll(@RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос GET по пути /items");
         List<Item> items = itemService.getItemsByUserId(userId);
-        return itemMapper.toOutgoingItemDtoList(items, userId);
+        return items.stream()
+                .map(item -> appendItemDto(item.getId(), userId))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public OutgoingItemDto get(@PathVariable("id") Long itemId, @RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос GET по пути /items по id {}", itemId);
-        Item item = itemService.findById(itemId);
-        return itemMapper.toOutgoingItemDto(item, userId);
+        return appendItemDto(itemId, userId);
     }
 
     @PostMapping
@@ -46,21 +54,24 @@ public class ItemController {
                                    @RequestBody IncomingItemDto incomingItemDto,
                                    @RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос POST по пути /items для добавления вещи: {}", incomingItemDto);
-        Item item = itemMapper.toItem(incomingItemDto, userId);
+        User user = userService.findById(userId);
+        Item item = ItemMapper.toItem(incomingItemDto, user);
         Item addedItem = itemService.save(item);
-        return itemMapper.toOutgoingItemDto(addedItem, userId);
+        return appendItemDto(addedItem.getId(), userId);
     }
 
     @PostMapping("/{id}/comment")
     public OutgoingCommentDto addComment(@PathVariable("id") Long itemId,
-                                         @Valid @RequestBody IncomingCommentDto incomingCommentDto,
+                                         @Valid @RequestBody IncomingCommentDto commentDto,
                                          @RequestHeader(USER_HEADER) Long userId) {
-        Comment comment = commentMapper.toComment(incomingCommentDto, itemId, userId);
-        log.info("Получен запрос POST по пути /items/{}/comment для добавления комментария: {}", itemId, comment);
-        validationService.validateComment(comment, userId);
-        validationService.validateUser(comment.getAuthor().getId());
-        validationService.validateStringField(comment.getText());
-        Comment addedComment = itemService.saveComment(comment, userId);
+        log.info("Получен запрос POST по пути /items/{}/comment для добавления комментария: {}", itemId, commentDto);
+        Item item = itemService.findById(itemId);
+        User user = userService.findById(userId);
+        Comment commentToAdd = CommentMapper.toComment(commentDto, item, user);
+        validationService.validateComment(commentToAdd, userId);
+        validationService.validateUser(commentToAdd.getAuthor().getId());
+        validationService.validateStringField(commentToAdd.getText());
+        Comment addedComment = itemService.saveComment(commentToAdd, userId);
         return CommentMapper.toOutgoingCommentDto(addedComment);
     }
 
@@ -69,11 +80,12 @@ public class ItemController {
                                   @RequestHeader(USER_HEADER) Long userId,
                                   @RequestBody IncomingItemDto incomingItemDto) {
         log.info("Получен запрос PATCH по пути /items/{} для обновления вещи: {}", itemId, incomingItemDto);
-        Item item = itemMapper.toItem(incomingItemDto, userId);
+        User user = userService.findById(userId);
+        Item item = ItemMapper.toItem(incomingItemDto, user);
         validationService.validateItemOwner(itemId, userId);
         validationService.validateUser(item.getOwner().getId());
         Item updatedItem = itemService.update(itemId, userId, item);
-        return itemMapper.toOutgoingItemDto(updatedItem, userId);
+        return appendItemDto(updatedItem.getId(), userId);
     }
 
     @GetMapping("/search")
@@ -83,7 +95,9 @@ public class ItemController {
             return new ArrayList<>();
         }
         List<Item> items = itemService.search(text);
-        return itemMapper.toOutgoingItemDtoList(items, userId);
+        return items.stream()
+                .map(item -> appendItemDto(item.getId(), userId))
+                .collect(Collectors.toList());
     }
 
     @DeleteMapping("/{id}")
@@ -92,5 +106,16 @@ public class ItemController {
         log.info("Получен запрос DELETE по пути /items по id {}", itemId);
         validationService.validateItemOwner(itemId, userId);
         itemService.delete(userId, itemId);
+    }
+
+    private OutgoingItemDto appendItemDto(Long itemId, Long userId) { // вынесено, чтобы не добавлять сервисы в мапперы
+        Item item = itemService.findById(itemId);
+        Booking lastBooking = bookingService.getLastBooking(itemId, userId);
+        OutgoingBookingDto lastBookingDto = BookingMapper.toOutgoingBookingDto(lastBooking);
+        Booking nextBooking = bookingService.getNextBooking(itemId, userId);
+        OutgoingBookingDto nextBookingDto = BookingMapper.toOutgoingBookingDto(nextBooking);
+        List<Comment> comments = itemService.findCommentsById(itemId);
+        List<OutgoingCommentDto> commentsDto = CommentMapper.toOutgoingCommentDtoList(comments);
+        return ItemMapper.toOutgoingItemDto(item, lastBookingDto, nextBookingDto, commentsDto);
     }
 }
