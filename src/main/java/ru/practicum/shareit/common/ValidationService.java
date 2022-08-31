@@ -20,11 +20,6 @@ import java.time.LocalDateTime;
 @Slf4j
 @RequiredArgsConstructor
 public class ValidationService {
-    private final UserService userService;
-    private final ItemService itemService;
-    private final BookingService bookingService;
-
-    private static final String VALIDATION_STAGE_MESSAGE = "Этап валидации.";
     private static final String NO_ITEM_RIGHTS_MESSAGE = "У пользователя %s нет доступа к вещи %s.";
     private static final String NO_RIGHTS_TO_COMMENT_MESSAGE = "У пользователя нет прав комментировать.";
     private static final String OWNER_REQUESTING_OWN_ITEM_MESSAGE = "Запрос на бронирование отправлен хозяином вещи.";
@@ -34,8 +29,12 @@ public class ValidationService {
     private static final String STATUS_ALREADY_ASSIGNED_MESSAGE = "Статус бронированию уже присвоен.";
     private static final String FIELD_IS_BLANK_MESSAGE = "Не заполнено текстовое поле.";
 
+    private final UserService userService;
+    private final ItemService itemService;
+    private final BookingService bookingService;
+
     public void validateItemOwner(Long itemId, Long userId) {
-        log.info(VALIDATION_STAGE_MESSAGE);
+        log.info("Валидация: проверка, является ли пользователь {} владельцем вещи {}", userId, itemId);
         Item item = itemService.findById(itemId);
         if (!item.getOwner().getId().equals(userId)) {
             throw new ForbiddenException(String.format(NO_ITEM_RIGHTS_MESSAGE, itemId, userId));
@@ -43,12 +42,12 @@ public class ValidationService {
     }
 
     public boolean validateQueryString(String query) {
-        log.info(VALIDATION_STAGE_MESSAGE);
+        log.info("Валидация: проверка наличия текста в поле запроса");
         return query.isBlank();
     }
 
     public void validateComment(Comment comment, Long userId) {
-        log.info(VALIDATION_STAGE_MESSAGE);
+        log.info("Валидация: проверка, имеет ли пользователь {} право оставления комментария", userId);
         if (!bookingService.isUserPresentAmongBookers(userId)) {
             throw new BadRequestException(NO_RIGHTS_TO_COMMENT_MESSAGE);
         }
@@ -59,14 +58,14 @@ public class ValidationService {
     }
 
     public void validateStringField(String name) {
-        log.info(VALIDATION_STAGE_MESSAGE);
+        log.info("Валидация: проверка наличия текста в поле имени");
         if (name.isBlank()) {
             throw new BadRequestException(FIELD_IS_BLANK_MESSAGE);
         }
     }
 
     public void validateBooking(Booking booking, Long userId, Item item) {
-        log.info(VALIDATION_STAGE_MESSAGE);
+        log.info("Валидация: проверка корректности данных для доступа к вещи {}", item.getId());
         if (item.getOwner().getId().equals(userId)) {
             throw new NotFoundException(OWNER_REQUESTING_OWN_ITEM_MESSAGE);
         }
@@ -81,15 +80,15 @@ public class ValidationService {
         }
     }
 
-    public void validateBookingRequest(Booking booking, Long id, Long userId) {
-        log.info(VALIDATION_STAGE_MESSAGE);
+    public void validateBookingRequest(Booking booking, Long userId) {
+        log.info("Валидация: проверка, имеет ли пользователь {} право доступа к бронированию", userId);
         if (!userId.equals(booking.getBooker().getId()) && !userId.equals(booking.getItem().getOwner().getId())) {
-            throw new NotFoundException(String.format(NO_RIGHTS_FOR_BOOKING_MESSAGE, userId, id));
+            throw new NotFoundException(String.format(NO_RIGHTS_FOR_BOOKING_MESSAGE, userId, booking));
         }
     }
 
     public void validateStatusUpdateRequest(Booking booking, Long userId) {
-        log.info(VALIDATION_STAGE_MESSAGE);
+        log.info("Валидация: проверка, имеет ли пользователь {} доступ к обновланию бронирования {}", userId, booking);
         if (!booking.getItem().getOwner().getId().equals(userId)) {
             throw new NotFoundException(NO_ITEM_RIGHTS_MESSAGE);
         }
@@ -99,7 +98,7 @@ public class ValidationService {
     }
 
     public void validateUser(Long userId) {
-        log.info(VALIDATION_STAGE_MESSAGE);
+        log.info("Валидация: проверка на наличие в базе пользователя {}", userId);
         userService.findById(userId);
     }
 }

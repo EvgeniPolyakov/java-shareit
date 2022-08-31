@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.GuestBookingDto;
 import ru.practicum.shareit.booking.model.IncomingBookingDto;
+import ru.practicum.shareit.booking.model.OwnersBookingDto;
 import ru.practicum.shareit.booking.service.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.common.ValidationService;
@@ -21,61 +23,66 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(path = "/bookings")
 public class BookingController {
+    private static final String USER_HEADER = "X-Sharer-User-Id";
+    private static final String STATUS_VALUE_ALL = "ALL";
+    public static final String ID_PATH_VARIABLE_KEY = "id";
+
     private final BookingService bookingService;
     private final ItemService itemService;
     private final UserService userService;
     private final ValidationService validationService;
 
-    private static final String USER_HEADER = "X-Sharer-User-Id";
-    private static final String STATUS_VALUE_ALL = "ALL";
-
     @GetMapping
-    public List<Booking> getAllByBooker(@RequestHeader(USER_HEADER) Long userId,
-                                        @RequestParam(defaultValue = STATUS_VALUE_ALL) String state) {
+    public List<OwnersBookingDto> getAllByBooker(@RequestHeader(USER_HEADER) Long userId,
+                                                 @RequestParam(defaultValue = STATUS_VALUE_ALL) String state) {
         log.info("Получен запрос GET по пути /bookings");
         validationService.validateUser(userId);
-        return bookingService.getBookingsMadeByUser(userId, state);
+        List<Booking> bookings = bookingService.getBookingsMadeByUser(userId, state);
+        return BookingMapper.toOwnersBookingDtoList(bookings);
     }
 
     @GetMapping("/owner")
-    public List<Booking> getAllForItemsOwned(@RequestHeader(USER_HEADER) Long userId,
-                                             @RequestParam(defaultValue = STATUS_VALUE_ALL) String state) {
+    public List<OwnersBookingDto> getAllForItemsOwned(@RequestHeader(USER_HEADER) Long userId,
+                                                      @RequestParam(defaultValue = STATUS_VALUE_ALL) String state) {
         log.info("Получен запрос GET по пути /bookings/owner");
         validationService.validateUser(userId);
-        return bookingService.getBookingsForItemsOwned(userId, state);
+        List<Booking> bookings = bookingService.getBookingsForItemsOwned(userId, state);
+        return BookingMapper.toOwnersBookingDtoList(bookings);
     }
 
     @GetMapping("/{id}")
-    public Booking findById(@PathVariable("id") Long id, @RequestHeader(USER_HEADER) Long userId) {
+    public OwnersBookingDto findById(@PathVariable(ID_PATH_VARIABLE_KEY) Long id, @RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос GET по пути /bookings по id {}", id);
         Booking booking = bookingService.findById(id, userId);
-        validationService.validateBookingRequest(booking, id, userId);
-        return booking;
+        validationService.validateBookingRequest(booking, userId);
+        return BookingMapper.toOwnersBookingDto(booking);
     }
 
     @PostMapping
-    public Booking add(@Valid @RequestBody IncomingBookingDto bookingDto, @RequestHeader(USER_HEADER) Long userId) {
+    public GuestBookingDto add(@Valid @RequestBody IncomingBookingDto bookingDto, @RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос POST по пути /bookings для добавления бронирования: {}", bookingDto);
         Item item = itemService.findById(bookingDto.getItemId());
         User user = userService.findById(userId);
-        Booking booking = BookingMapper.toBooking(bookingDto, item, user);
+        Booking bookingToPost = BookingMapper.toBooking(bookingDto, item, user);
         validationService.validateUser(userId);
-        validationService.validateBooking(booking, userId, item);
-        return bookingService.save(booking, userId);
+        validationService.validateBooking(bookingToPost, userId, item);
+        Booking bookingToReturn = bookingService.book(bookingToPost, userId);
+        return BookingMapper.toGuestBookingDto(bookingToReturn);
     }
 
     @PatchMapping("/{id}")
-    public Booking update(@PathVariable("id") Long bookingId,
-                          @RequestHeader(USER_HEADER) Long userId,
-                          @RequestParam boolean approved) {
+    public OwnersBookingDto update(@PathVariable(ID_PATH_VARIABLE_KEY) Long bookingId,
+                                   @RequestHeader(USER_HEADER) Long userId,
+                                   @RequestParam boolean approved) {
         log.info("Получен запрос PATCH к бронированию с id {}", bookingId);
-        Booking booking = bookingService.findById(bookingId, userId);
-        validationService.validateStatusUpdateRequest(booking, userId);
-        return bookingService.update(booking, userId, approved);
+        Booking bookingForUpdate = bookingService.findById(bookingId, userId);
+        validationService.validateStatusUpdateRequest(bookingForUpdate, userId);
+        Booking bookingToReturn = bookingService.update(bookingForUpdate, userId, approved);
+        return BookingMapper.toOwnersBookingDto(bookingToReturn);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") Long id, @RequestHeader(USER_HEADER) Long userId) {
+    public void delete(@PathVariable(ID_PATH_VARIABLE_KEY) Long id, @RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос DELETE по пути /bookings по id {}", id);
         Booking booking = bookingService.findById(id, userId);
         bookingService.delete(booking);

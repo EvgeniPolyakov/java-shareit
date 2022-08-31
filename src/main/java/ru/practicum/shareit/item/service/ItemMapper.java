@@ -1,6 +1,6 @@
 package ru.practicum.shareit.item.service;
 
-import ru.practicum.shareit.booking.model.OutgoingBookingDto;
+import ru.practicum.shareit.booking.model.GuestBookingDto;
 import ru.practicum.shareit.item.model.IncomingItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.OutgoingCommentDto;
@@ -12,7 +12,7 @@ import java.util.List;
 public class ItemMapper {
 
     public static OutgoingItemDto toOutgoingItemDto(
-            Item item, OutgoingBookingDto lastBooking, OutgoingBookingDto nextBooking, List<OutgoingCommentDto> comments) {
+            Item item, GuestBookingDto lastBooking, GuestBookingDto nextBooking, List<OutgoingCommentDto> comments) {
         return new OutgoingItemDto(
                 item.getId(),
                 item.getName(),

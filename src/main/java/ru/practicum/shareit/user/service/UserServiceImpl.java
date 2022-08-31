@@ -15,9 +15,9 @@ import java.util.List;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserRepository repository;
-
     private static final String USER_NOT_FOUND_MESSAGE = "Пользователь c id %s не найден.";
+
+    private final UserRepository repository;
 
     @Override
     public List<User> getAll() {
@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User save(User user) {
-        log.info("Добавление пользователя с id {}", user.getId());
+        log.info("Добавление пользователя: {}", user);
         return repository.save(user);
     }
 

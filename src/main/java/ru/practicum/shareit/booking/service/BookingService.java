@@ -7,7 +7,7 @@ import java.util.List;
 public interface BookingService {
     List<Booking> getBookingsMadeByUser(Long userId, String state);
 
-    Booking save(Booking booking, Long userId);
+    Booking book(Booking booking, Long userId);
 
     Booking update(Booking booking, Long userId, boolean status);
 

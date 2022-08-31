@@ -18,10 +18,11 @@ import java.util.List;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
+    private static final String ITEM_NOT_FOUND_MESSAGE = "Вещь c id %s не найдена.";
+
     private final ItemRepository repository;
     private final CommentRepository commentRepository;
     private final UserService userService;
-    private static final String ITEM_NOT_FOUND_MESSAGE = "Вещь c id %s не найдена.";
 
     @Override
     public List<Item> getItemsByUserId(Long userId) {
@@ -33,14 +34,14 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public Item save(Item item) {
         userService.findById(item.getOwner().getId());
-        log.info("Добавление новой вещи с id {}", item.getId());
+        log.info("Добавление новой вещи: {}", item);
         return repository.save(item);
     }
 
     @Override
     @Transactional
     public Comment saveComment(Comment comment, Long userId) {
-        log.info("Добавление нового комментария с id {}", comment.getId());
+        log.info("Добавление нового комментария: {}", comment);
         return commentRepository.save(comment);
     }
 

@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class OutgoingBookingDto {
+public class GuestBookingDto {
     private Long id;
     private Long bookerId;
 }

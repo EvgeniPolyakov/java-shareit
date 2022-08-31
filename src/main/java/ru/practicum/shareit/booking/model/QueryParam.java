@@ -1,7 +1,10 @@
 package ru.practicum.shareit.booking.model;
 
-public enum Status {
+public enum QueryParam {
+    ALL,
     WAITING,
     REJECTED,
-    APPROVED
+    PAST,
+    FUTURE,
+    CURRENT
 }

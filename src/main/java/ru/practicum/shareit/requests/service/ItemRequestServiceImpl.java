@@ -15,9 +15,9 @@ import java.util.List;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ItemRequestServiceImpl implements ItemRequestService {
-    private final ItemRequestRepository repository;
-
     private static final String REQUEST_NOT_FOUND_MESSAGE = "Заявка c id %s не найдена.";
+
+    private final ItemRequestRepository repository;
 
     @Override
     public List<ItemRequest> getAll() {
@@ -28,7 +28,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     @Transactional
     public ItemRequest save(ItemRequest request) {
-        log.info("Добавление новой заявки с id {}", request.getId());
+        log.info("Добавление новой заявки {}", request);
         return repository.save(request);
     }
 
@@ -58,7 +58,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequest findById(Long id) {
-        log.info("Получение бронирования с id {}", id);
+        log.info("Получение заявки с id {}", id);
         return repository.findById(id).orElseThrow(
                 () -> new NotFoundException(String.format(REQUEST_NOT_FOUND_MESSAGE, id)));
     }

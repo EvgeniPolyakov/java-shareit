@@ -18,6 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(path = "/users")
 public class UserController {
+    public static final String ID_PATH_VARIABLE_KEY = "id";
+
     private final UserService userService;
 
     @GetMapping
@@ -35,7 +37,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public UserDto update(@PathVariable("id") Long id, @Valid @RequestBody UserDto userDto) {
+    public UserDto update(@PathVariable(ID_PATH_VARIABLE_KEY) Long id, @Valid @RequestBody UserDto userDto) {
         log.info("Получен запрос PATCH по пути /users/{} для обновления пользователя: {}", id, userDto);
         User user = UserMapper.toUser(userDto);
         User updatedUser = userService.update(id, user);
@@ -43,13 +45,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserDto getById(@PathVariable("id") Long id) {
+    public UserDto getById(@PathVariable(ID_PATH_VARIABLE_KEY) Long id) {
         log.info("Получен запрос GET по пути /users по id {}", id);
         return UserMapper.toUserDto(userService.findById(id));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") Long id) {
+    public void delete(@PathVariable(ID_PATH_VARIABLE_KEY) Long id) {
         log.info("Получен запрос DELETE по пути /users по id {}", id);
         userService.delete(id);
     }

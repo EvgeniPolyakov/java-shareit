@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.OutgoingBookingDto;
+import ru.practicum.shareit.booking.model.GuestBookingDto;
 import ru.practicum.shareit.booking.service.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.common.Create;
@@ -27,12 +27,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/items")
 public class ItemController {
+    private static final String USER_HEADER = "X-Sharer-User-Id";
+    public static final String ID_PATH_VARIABLE_KEY = "id";
+
     private final ItemService itemService;
     private final UserService userService;
     private final BookingService bookingService;
     private final ValidationService validationService;
-
-    private static final String USER_HEADER = "X-Sharer-User-Id";
 
     @GetMapping()
     public List<OutgoingItemDto> getAll(@RequestHeader(USER_HEADER) Long userId) {
@@ -44,7 +45,7 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
-    public OutgoingItemDto get(@PathVariable("id") Long itemId, @RequestHeader(USER_HEADER) Long userId) {
+    public OutgoingItemDto get(@PathVariable(ID_PATH_VARIABLE_KEY) Long itemId, @RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос GET по пути /items по id {}", itemId);
         return appendItemDto(itemId, userId);
     }
@@ -61,7 +62,7 @@ public class ItemController {
     }
 
     @PostMapping("/{id}/comment")
-    public OutgoingCommentDto addComment(@PathVariable("id") Long itemId,
+    public OutgoingCommentDto addComment(@PathVariable(ID_PATH_VARIABLE_KEY) Long itemId,
                                          @Valid @RequestBody IncomingCommentDto commentDto,
                                          @RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос POST по пути /items/{}/comment для добавления комментария: {}", itemId, commentDto);
@@ -76,7 +77,7 @@ public class ItemController {
     }
 
     @PatchMapping("/{id}")
-    public OutgoingItemDto update(@PathVariable("id") Long itemId,
+    public OutgoingItemDto update(@PathVariable(ID_PATH_VARIABLE_KEY) Long itemId,
                                   @RequestHeader(USER_HEADER) Long userId,
                                   @RequestBody IncomingItemDto incomingItemDto) {
         log.info("Получен запрос PATCH по пути /items/{} для обновления вещи: {}", itemId, incomingItemDto);
@@ -102,7 +103,7 @@ public class ItemController {
 
     @DeleteMapping("/{id}")
     public void delete(@RequestHeader(USER_HEADER) Long userId,
-                       @PathVariable("id") Long itemId) {
+                       @PathVariable(ID_PATH_VARIABLE_KEY) Long itemId) {
         log.info("Получен запрос DELETE по пути /items по id {}", itemId);
         validationService.validateItemOwner(itemId, userId);
         itemService.delete(userId, itemId);
@@ -111,9 +112,9 @@ public class ItemController {
     private OutgoingItemDto appendItemDto(Long itemId, Long userId) { // вынесено, чтобы не добавлять сервисы в мапперы
         Item item = itemService.findById(itemId);
         Booking lastBooking = bookingService.getLastBooking(itemId, userId);
-        OutgoingBookingDto lastBookingDto = BookingMapper.toOutgoingBookingDto(lastBooking);
+        GuestBookingDto lastBookingDto = BookingMapper.toGuestBookingDto(lastBooking);
         Booking nextBooking = bookingService.getNextBooking(itemId, userId);
-        OutgoingBookingDto nextBookingDto = BookingMapper.toOutgoingBookingDto(nextBooking);
+        GuestBookingDto nextBookingDto = BookingMapper.toGuestBookingDto(nextBooking);
         List<Comment> comments = itemService.findCommentsById(itemId);
         List<OutgoingCommentDto> commentsDto = CommentMapper.toOutgoingCommentDtoList(comments);
         return ItemMapper.toOutgoingItemDto(item, lastBookingDto, nextBookingDto, commentsDto);
