@@ -1,51 +1,27 @@
 package ru.practicum.shareit.booking.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.repository.BookingStorage;
 
 import java.util.List;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class BookingService {
-    private final BookingStorage bookingStorage;
+public interface BookingService {
+    List<Booking> getBookingsMadeByUser(Long userId, String state);
 
-    public List<Booking> getAll() {
-        log.info("Получение списка всех бронирований");
-        return bookingStorage.getAll();
-    }
+    Booking book(Booking booking, Long userId);
 
-    public Booking add(Booking booking) {
-        log.info("Добавление нового бронирования с id {}", booking.getId());
-        return bookingStorage.add(booking);
-    }
+    Booking update(Booking booking, Long userId, boolean status);
 
-    public Booking update(Long id, Booking booking) {
-        Booking bookingForUpdate = bookingStorage.getById(id);
-        if (booking.getItem() != null) {
-            bookingForUpdate.setItem(booking.getItem());
-        }
-        if (booking.getStart() != null) {
-            bookingForUpdate.setStart(booking.getStart());
-        }
-        if (booking.getEnd() != null) {
-            bookingForUpdate.setEnd(booking.getEnd());
-        }
-        log.info("Обновление бронирования с id {}", id);
-        return bookingStorage.update(bookingForUpdate);
-    }
+    void delete(Booking booking);
 
-    public void delete(Long id) {
-        log.info("Удаление бронирования с id {}", id);
-        bookingStorage.delete(id);
-    }
+    Booking findById(Long id, Long userId);
 
-    public Booking getById(Long id) {
-        log.info("Получение бронирования с id {}", id);
-        return bookingStorage.getById(id);
-    }
+    List<Booking> getBookingsForItemsOwned(Long userId, String state);
+
+    Booking getLastBooking(Long itemId, Long userId);
+
+    Booking getNextBooking(Long itemId, Long userId);
+
+    boolean isUserPresentAmongBookers(Long id);
+
+    Booking findBookingByUserAndItem(Long itemId, Long userId);
 }

@@ -1,35 +1,44 @@
 package ru.practicum.shareit.booking.service;
 
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.BookingDto;
+import lombok.RequiredArgsConstructor;
+import ru.practicum.shareit.booking.model.*;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class BookingMapper {
 
-    public static BookingDto toBookingDto(Booking booking) {
-        return new BookingDto(
+    public static GuestBookingDto toGuestBookingDto(Booking booking) {
+        return booking != null ? new GuestBookingDto(booking.getId(), booking.getBooker().getId()) : null;
+    }
+
+    public static OwnersBookingDto toOwnersBookingDto(Booking booking) {
+        return booking != null ? new OwnersBookingDto(
                 booking.getId(),
+                booking.getBooker(),
+                booking.getStatus(),
                 booking.getItem(),
+                booking.getItem().getName(),
                 booking.getStart(),
                 booking.getEnd()
-        );
+        ) : null;
     }
 
-    public static List<BookingDto> toBookingDtoList(List<Booking> bookings) {
-        return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+    public static List<OwnersBookingDto> toOwnersBookingDtoList(List<Booking> bookings) {
+        return bookings.stream().map(BookingMapper::toOwnersBookingDto).collect(Collectors.toList());
     }
 
-    public static Booking toBooking(BookingDto bookingDto) {
+    public static Booking toBooking(IncomingBookingDto bookingDto, Item item, User user) {
         return new Booking(
-                bookingDto.getId(),
-                bookingDto.getItem(),
+                null,
+                item,
                 bookingDto.getStart(),
                 bookingDto.getEnd(),
-                null, // в будущем - Long booker
-                null, // в будущем - Status status,
-                null // в будущем - String review
+                user,
+                Status.WAITING
         );
     }
 }

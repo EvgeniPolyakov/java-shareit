@@ -16,38 +16,41 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
+    public static final String ID_PATH_VARIABLE_KEY = "id";
+
     private final ItemRequestService itemRequestService;
 
     @GetMapping
     public List<ItemRequestDto> getAll() {
-        log.info("Получен запрос GET /requests");
+        log.info("Получен запрос по пути GET /requests");
         return ItemRequestMapper.toItemRequestDtoList(itemRequestService.getAll());
     }
 
     @PostMapping
     public ItemRequestDto add(@Valid @RequestBody ItemRequestDto requestDto) {
+        log.info("Получен запрос POST по пути /requests для добавления запроса на вещь: {}", requestDto);
         ItemRequest request = ItemRequestMapper.toItemRequest(requestDto);
-        log.info("Получен запрос POST (createRequest). Добавлен запрос на вещь: {}", request);
-        return ItemRequestMapper.toItemRequestDto(itemRequestService.add(request));
+        ItemRequest addedRequest = itemRequestService.save(request);
+        return ItemRequestMapper.toItemRequestDto(addedRequest);
     }
 
     @PatchMapping("/{id}")
-    public ItemRequestDto update(@PathVariable("id") Long id, @Valid @RequestBody ItemRequestDto requestDto) {
+    public ItemRequestDto update(@PathVariable(ID_PATH_VARIABLE_KEY) Long id, @Valid @RequestBody ItemRequestDto requestDto) {
+        log.info("Получен запрос PATCH по пути /requests для обновления запроса на вещь: {}", requestDto);
         ItemRequest request = ItemRequestMapper.toItemRequest(requestDto);
         ItemRequest updatedRequest = itemRequestService.update(id, request);
-        log.info("Получен запрос PUT (updateRequest). Добавлен запрос на вещь: {}", request);
         return ItemRequestMapper.toItemRequestDto(updatedRequest);
     }
 
     @GetMapping("/{id}")
-    public ItemRequestDto getById(@PathVariable("id") Long id) {
-        log.info("Получен запрос GET /requests по id {}", id);
-        return ItemRequestMapper.toItemRequestDto(itemRequestService.getById(id));
+    public ItemRequestDto getById(@PathVariable(ID_PATH_VARIABLE_KEY) Long id) {
+        log.info("Получен запрос GET по пути /requests по id {}", id);
+        return ItemRequestMapper.toItemRequestDto(itemRequestService.findById(id));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") Long id) {
-        log.info("Получен запрос DELETE /requests по id {}", id);
+    public void delete(@PathVariable(ID_PATH_VARIABLE_KEY) Long id) {
+        log.info("Получен запрос DELETE по пути /requests по id {}", id);
         itemRequestService.delete(id);
     }
 }

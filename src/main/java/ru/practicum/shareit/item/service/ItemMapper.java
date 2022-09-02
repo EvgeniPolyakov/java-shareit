@@ -1,35 +1,37 @@
 package ru.practicum.shareit.item.service;
 
+import ru.practicum.shareit.booking.model.GuestBookingDto;
+import ru.practicum.shareit.item.model.IncomingItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemDto;
+import ru.practicum.shareit.item.model.OutgoingCommentDto;
+import ru.practicum.shareit.item.model.OutgoingItemDto;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ItemMapper {
 
-    public static ItemDto toItemDto(Item item) {
-        return new ItemDto(
+    public static OutgoingItemDto toOutgoingItemDto(
+            Item item, GuestBookingDto lastBooking, GuestBookingDto nextBooking, List<OutgoingCommentDto> comments) {
+        return new OutgoingItemDto(
                 item.getId(),
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getRequest() != null ? item.getRequest() : null
+                lastBooking,
+                nextBooking,
+                comments
         );
     }
 
-    public static List<ItemDto> toItemDtoList(List<Item> items) {
-        return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
-    }
-
-    public static Item toItem(ItemDto itemDto, Long userId) {
+    public static Item toItem(IncomingItemDto incomingItemDto, User user) {
         return new Item(
-                itemDto.getId(),
-                itemDto.getName(),
-                itemDto.getDescription(),
-                itemDto.getAvailable(),
-                userId,
-                itemDto.getRequest() != null ? itemDto.getRequest() : null
+                null,
+                incomingItemDto.getName(),
+                incomingItemDto.getDescription(),
+                incomingItemDto.getAvailable(),
+                user,
+                null // логика request будет написана позже
         );
     }
 }

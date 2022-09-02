@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.Create;
+import ru.practicum.shareit.common.Create;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.model.UserDto;
 import ru.practicum.shareit.user.service.UserMapper;
@@ -18,38 +18,41 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(path = "/users")
 public class UserController {
+    public static final String ID_PATH_VARIABLE_KEY = "id";
+
     private final UserService userService;
 
     @GetMapping
     public List<UserDto> getAll() {
-        log.info("Получен запрос GET /users");
+        log.info("Получен запрос GET по пути /users");
         return UserMapper.toUserDtoList(userService.getAll());
     }
 
     @PostMapping
     public UserDto add(@Validated({Create.class}) @RequestBody UserDto userDto) {
+        log.info("Получен запрос POST по пути /users для добавления пользователя: {}", userDto);
         User user = UserMapper.toUser(userDto);
-        log.info("Получен запрос POST (createUser). Добавлен пользователь: {}", user);
-        return UserMapper.toUserDto(userService.add(user));
+        User addedUser = userService.save(user);
+        return UserMapper.toUserDto(addedUser);
     }
 
     @PatchMapping("/{id}")
-    public UserDto update(@PathVariable("id") Long id, @Valid @RequestBody UserDto userDto) {
+    public UserDto update(@PathVariable(ID_PATH_VARIABLE_KEY) Long id, @Valid @RequestBody UserDto userDto) {
+        log.info("Получен запрос PATCH по пути /users/{} для обновления пользователя: {}", id, userDto);
         User user = UserMapper.toUser(userDto);
         User updatedUser = userService.update(id, user);
-        log.info("Получен запрос PUT (updateUser). Добавлен пользователь: {}", updatedUser);
         return UserMapper.toUserDto(updatedUser);
     }
 
     @GetMapping("/{id}")
-    public UserDto getById(@PathVariable("id") Long id) {
-        log.info("Получен запрос GET /users по id {}", id);
-        return UserMapper.toUserDto(userService.getById(id));
+    public UserDto getById(@PathVariable(ID_PATH_VARIABLE_KEY) Long id) {
+        log.info("Получен запрос GET по пути /users по id {}", id);
+        return UserMapper.toUserDto(userService.findById(id));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") Long id) {
-        log.info("Получен запрос DELETE /users по id {}", id);
+    public void delete(@PathVariable(ID_PATH_VARIABLE_KEY) Long id) {
+        log.info("Получен запрос DELETE по пути /users по id {}", id);
         userService.delete(id);
     }
 }
