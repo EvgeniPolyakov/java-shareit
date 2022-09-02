@@ -1,2 +1,2 @@
 # java-shareit
-Каркас для приложения Shareit.
+Приложения Shareit (14)

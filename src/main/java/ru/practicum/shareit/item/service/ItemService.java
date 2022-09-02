@@ -1,96 +1,26 @@
 package ru.practicum.shareit.item.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.ForbiddenException;
-import ru.practicum.shareit.exception.NotFoundException;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemDto;
-import ru.practicum.shareit.item.repository.ItemStorage;
-import ru.practicum.shareit.user.service.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class ItemService {
-    private final ItemStorage itemStorage;
-    private final UserService userService;
+public interface ItemService {
+    List<Item> getItemsByUserId(Long userId);
 
-    public List<Item> getItemsByUserId(Long userId) {
-        userService.checkUserId(userId);
-        log.info("Получение списка всех вещей пользователя {}", userId);
-        return itemStorage.getItemsByUserId(userId);
-    }
+    Item save(Item item);
 
-    public Item add(Long userId, ItemDto itemDto) {
-        userService.checkUserId(userId);
-        Item item = ItemMapper.toItem(itemDto, userId);
-        log.info("Добавление новой вещи с id {}", item.getId());
-        return itemStorage.add(item);
-    }
+    @Transactional
+    Comment saveComment(Comment comment, Long userId);
 
-    public Item update(Long itemId, Long userId, ItemDto itemDto) {
-        userService.checkUserId(userId);
-        checkItemId(itemId);
-        checkItemOwner(itemId, userId);
-        Item itemForUpdate = itemStorage.get(itemId);
-        if (itemDto.getDescription() != null) {
-            validateStringField(itemDto.getDescription());
-            itemForUpdate.setDescription(itemDto.getDescription());
-        }
-        if (itemDto.getName() != null) {
-            validateStringField(itemDto.getName());
-            itemForUpdate.setName(itemDto.getName());
-        }
-        if (itemDto.getAvailable() != null) {
-            itemForUpdate.setAvailable(itemDto.getAvailable());
-        }
-        log.info("Обновление вещи с id {}", itemId);
-        return itemStorage.update(itemId, itemForUpdate);
-    }
+    Item update(Long itemId, Long userId, Item item);
 
-    public Item get(Long userId, Long itemId) {
-        checkItemId(itemId);
-        userService.checkUserId(userId);
-        log.info("Получение вещи с id {}", itemId);
-        return itemStorage.get(itemId);
-    }
+    Item findById(Long itemId);
 
-    public List<Item> search(String text) {
-        if (text.isBlank()) {
-            return new ArrayList<>();
-        }
-        return itemStorage.search(text);
-    }
+    List<Comment> findCommentsById(Long itemId);
 
-    private void checkItemId(Long itemId) {
-        if (itemStorage.get(itemId) == null) {
-            throw new NotFoundException(String.format("Вещь c id %s не найдена.", itemId));
-        }
-    }
+    List<Item> search(String text);
 
-    public void delete(Long userId, Long itemId) {
-        userService.checkUserId(userId);
-        checkItemId(itemId);
-        checkItemOwner(itemId, userId);
-        log.info("Удаление вещи с id {}", itemId);
-        itemStorage.delete(itemId);
-    }
-
-    private void checkItemOwner(Long itemId, Long userId) {
-        if (!(itemStorage.isItemOwner(itemId, userId))) {
-            throw new ForbiddenException(String.format("У пользователя %s нет доступа к вещи %s.", itemId, userId));
-        }
-    }
-
-    private void validateStringField(String name) {
-        if (name.isBlank()) {
-            throw new BadRequestException("Не заполнено текстовое поле.");
-        }
-    }
+    void delete(Long userId, Long itemId);
 }

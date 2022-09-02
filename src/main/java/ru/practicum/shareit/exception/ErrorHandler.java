@@ -28,7 +28,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ForbiddenException handleForbiddenException(final ForbiddenException e) {
-        return new ForbiddenException(e.getMessage());
+    public ErrorResponse handleForbiddenException(final ForbiddenException e) {
+        return new ErrorResponse(e.getMessage());
     }
 }

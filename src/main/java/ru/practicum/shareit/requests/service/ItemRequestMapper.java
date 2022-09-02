@@ -13,7 +13,7 @@ public class ItemRequestMapper {
         return new ItemRequestDto(
                 request.getId(),
                 request.getDescription(),
-                request.getRequester()
+                request.getRequesterId()
         );
     }
 
@@ -25,7 +25,7 @@ public class ItemRequestMapper {
         return new ItemRequest(
                 requestDto.getId(),
                 requestDto.getDescription(),
-                requestDto.getRequester(),
+                requestDto.getRequesterId(),
                 Instant.now()
         );
     }
