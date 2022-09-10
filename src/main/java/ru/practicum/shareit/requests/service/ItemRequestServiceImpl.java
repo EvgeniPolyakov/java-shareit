@@ -2,6 +2,9 @@ package ru.practicum.shareit.requests.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -15,14 +18,28 @@ import java.util.List;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ItemRequestServiceImpl implements ItemRequestService {
-    private static final String REQUEST_NOT_FOUND_MESSAGE = "Заявка c id %s не найдена.";
+    private static final String REQUEST_NOT_FOUND_MESSAGE = "Запрос c id %s не найден.";
 
     private final ItemRequestRepository repository;
 
     @Override
-    public List<ItemRequest> getAll() {
-        log.info("Получение списка всех заявок");
-        return repository.findAll();
+    public List<ItemRequest> getAll(Integer from, Integer size, Long userId) {
+        log.info("Получение списка всех запросов");
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by("created").descending());
+        return repository.findAllByRequesterIdIsNot(userId, pageable);
+    }
+
+    @Override
+    public List<ItemRequest> getOwn(Long userId) {
+        log.info(String.format("Получение списка запросов пользователя %s", userId));
+        return repository.getAllByRequesterIdOrderByCreatedDesc(userId);
+    }
+
+    @Override
+    public ItemRequest findById(Long id) {
+        log.info("Получение заявки с id {}", id);
+        return repository.findById(id).orElseThrow(
+                () -> new NotFoundException(String.format(REQUEST_NOT_FOUND_MESSAGE, id)));
     }
 
     @Override
@@ -40,26 +57,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         if (request.getDescription() != null) {
             requestForUpdate.setDescription(request.getDescription());
         }
-        if (request.getRequesterId() != null) {
-            requestForUpdate.setRequesterId(request.getRequesterId());
+        if (request.getRequester() != null) {
+            requestForUpdate.setRequester(request.getRequester());
         }
         log.info("Обновление заявки с id {}", id);
         return repository.save(requestForUpdate);
-    }
-
-    @Override
-    @Transactional
-    public void delete(Long id) {
-        ItemRequest request = repository.findById(id).orElseThrow(
-                () -> new NotFoundException(String.format(REQUEST_NOT_FOUND_MESSAGE, id)));
-        log.info("Удаление заявки с id {}", id);
-        repository.delete(request);
-    }
-
-    @Override
-    public ItemRequest findById(Long id) {
-        log.info("Получение заявки с id {}", id);
-        return repository.findById(id).orElseThrow(
-                () -> new NotFoundException(String.format(REQUEST_NOT_FOUND_MESSAGE, id)));
     }
 }

@@ -2,6 +2,8 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -25,9 +27,15 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
 
     @Override
-    public List<Item> getItemsByUserId(Long userId) {
+    public List<Item> getItemsByUserId(Integer from, Integer size, Long userId) {
         log.info("Получение списка всех вещей пользователя {}", userId);
-        return repository.getAllByOwnerIdOrderById(userId);
+        Pageable pageable = PageRequest.of(from / size, size);
+        return repository.getAllByOwnerIdOrderById(userId, pageable);
+    }
+
+    @Override
+    public List<Item> getAllByRequestId(Long id) {
+        return repository.getAllByRequestId(id);
     }
 
     @Override
@@ -77,10 +85,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> search(String query) {
+    public List<Item> search(Integer from, Integer size, String query) {
         log.info("Поиск вещей по поисковому запросу: {}", query);
+        Pageable pageable = PageRequest.of(from / size, size);
         return repository.getAllByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndAvailableIsTrue(
-                query, query);
+                query, query, pageable);
     }
 
     @Override

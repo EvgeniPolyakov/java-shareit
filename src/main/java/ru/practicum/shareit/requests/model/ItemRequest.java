@@ -3,9 +3,10 @@ package ru.practicum.shareit.requests.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -17,7 +18,8 @@ public class ItemRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String description;
-    @Column(name = "requester_id")
-    private Long requesterId;
-    private Instant created;
+    @ManyToOne
+    @JoinColumn(name = "requester_id")
+    private User requester;
+    private LocalDateTime created;
 }

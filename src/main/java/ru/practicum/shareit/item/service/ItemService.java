@@ -7,7 +7,7 @@ import ru.practicum.shareit.item.model.Item;
 import java.util.List;
 
 public interface ItemService {
-    List<Item> getItemsByUserId(Long userId);
+    List<Item> getItemsByUserId(Integer from, Integer size, Long userId);
 
     Item save(Item item);
 
@@ -20,7 +20,9 @@ public interface ItemService {
 
     List<Comment> findCommentsById(Long itemId);
 
-    List<Item> search(String text);
+    List<Item> search(Integer from, Integer size, String text);
+
+    List<Item> getAllByRequestId(Long id);
 
     void delete(Long userId, Long itemId);
 }
