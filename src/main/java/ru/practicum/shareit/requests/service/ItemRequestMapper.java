@@ -1,32 +1,31 @@
 package ru.practicum.shareit.requests.service;
 
+import ru.practicum.shareit.item.model.OutgoingItemDto;
+import ru.practicum.shareit.requests.model.IncomingRequestDto;
 import ru.practicum.shareit.requests.model.ItemRequest;
-import ru.practicum.shareit.requests.model.ItemRequestDto;
+import ru.practicum.shareit.requests.model.OutgoingRequestDto;
+import ru.practicum.shareit.user.model.User;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ItemRequestMapper {
 
-    public static ItemRequestDto toItemRequestDto(ItemRequest request) {
-        return new ItemRequestDto(
+    public static OutgoingRequestDto toOutgoingRequestDto(ItemRequest request, List<OutgoingItemDto> items) {
+        return new OutgoingRequestDto(
                 request.getId(),
                 request.getDescription(),
-                request.getRequesterId()
+                request.getCreated(),
+                items
         );
     }
 
-    public static List<ItemRequestDto> toItemRequestDtoList(List<ItemRequest> users) {
-        return users.stream().map(ItemRequestMapper::toItemRequestDto).collect(Collectors.toList());
-    }
-
-    public static ItemRequest toItemRequest(ItemRequestDto requestDto) {
+    public static ItemRequest toItemRequest(IncomingRequestDto requestDto, User user) {
         return new ItemRequest(
-                requestDto.getId(),
+                null,
                 requestDto.getDescription(),
-                requestDto.getRequesterId(),
-                Instant.now()
+                user,
+                LocalDateTime.now()
         );
     }
 }

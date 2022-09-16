@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.QueryParam;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -15,6 +16,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 @Service
 @Slf4j
@@ -27,6 +29,7 @@ public class ValidationService {
     private static final String WRONG_DATE_MESSAGE = "Ошибка в дате бронирования.";
     private static final String NO_RIGHTS_FOR_BOOKING_MESSAGE = "У пользователя %s нет доступа к бронированию %s.";
     private static final String STATUS_ALREADY_ASSIGNED_MESSAGE = "Статус бронированию уже присвоен.";
+    private static final String UNKNOWN_STATUS_MESSAGE = "Unknown state: %s";
     private static final String FIELD_IS_BLANK_MESSAGE = "Не заполнено текстовое поле.";
 
     private final UserService userService;
@@ -41,9 +44,16 @@ public class ValidationService {
         }
     }
 
-    public boolean validateQueryString(String query) {
+    public boolean validateQueryField(String query) {
         log.info("Валидация: проверка наличия текста в поле запроса");
         return query.isBlank();
+    }
+
+    public void validateStringField(String name) {
+        log.info("Валидация: проверка наличия текста в поле имени");
+        if (name.isBlank()) {
+            throw new BadRequestException(FIELD_IS_BLANK_MESSAGE);
+        }
     }
 
     public void validateComment(Comment comment, Long userId) {
@@ -54,13 +64,6 @@ public class ValidationService {
         Booking booking = bookingService.findBookingByUserAndItem(comment.getItem().getId(), userId);
         if (comment.getCreationTime().isBefore(booking.getStart())) {
             throw new BadRequestException(NO_RIGHTS_TO_COMMENT_MESSAGE);
-        }
-    }
-
-    public void validateStringField(String name) {
-        log.info("Валидация: проверка наличия текста в поле имени");
-        if (name.isBlank()) {
-            throw new BadRequestException(FIELD_IS_BLANK_MESSAGE);
         }
     }
 
@@ -100,5 +103,12 @@ public class ValidationService {
     public void validateUser(Long userId) {
         log.info("Валидация: проверка на наличие в базе пользователя {}", userId);
         userService.findById(userId);
+    }
+
+    public QueryParam validateQueryParam(String state) {
+        return Arrays.stream(QueryParam.values())
+                .filter(param -> param.name().equals(state))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException(String.format(UNKNOWN_STATUS_MESSAGE, state)));
     }
 }

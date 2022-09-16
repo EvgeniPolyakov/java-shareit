@@ -2,11 +2,9 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.GuestBookingDto;
-import ru.practicum.shareit.booking.model.IncomingBookingDto;
-import ru.practicum.shareit.booking.model.OwnersBookingDto;
+import ru.practicum.shareit.booking.model.*;
 import ru.practicum.shareit.booking.service.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.common.ValidationService;
@@ -16,11 +14,14 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping(path = "/bookings")
 public class BookingController {
     private static final String USER_HEADER = "X-Sharer-User-Id";
@@ -34,19 +35,41 @@ public class BookingController {
 
     @GetMapping
     public List<OwnersBookingDto> getAllByBooker(@RequestHeader(USER_HEADER) Long userId,
+                                                 @PositiveOrZero @RequestParam(
+                                                         value = "from",
+                                                         required = false,
+                                                         defaultValue = "0"
+                                                 ) Integer from,
+                                                 @Min(1) @RequestParam(
+                                                         value = "size",
+                                                         required = false,
+                                                         defaultValue = "5"
+                                                 ) Integer size,
                                                  @RequestParam(defaultValue = STATUS_VALUE_ALL) String state) {
         log.info("Получен запрос GET по пути /bookings");
         validationService.validateUser(userId);
-        List<Booking> bookings = bookingService.getBookingsMadeByUser(userId, state);
+        QueryParam queryParam = validationService.validateQueryParam(state);
+        List<Booking> bookings = bookingService.getBookingsMadeByUser(from, size, userId, queryParam);
         return BookingMapper.toOwnersBookingDtoList(bookings);
     }
 
     @GetMapping("/owner")
     public List<OwnersBookingDto> getAllForItemsOwned(@RequestHeader(USER_HEADER) Long userId,
+                                                      @PositiveOrZero @RequestParam(
+                                                              value = "from",
+                                                              required = false,
+                                                              defaultValue = "0"
+                                                      ) Integer from,
+                                                      @Min(1) @RequestParam(
+                                                              value = "size",
+                                                              required = false,
+                                                              defaultValue = "5"
+                                                      ) Integer size,
                                                       @RequestParam(defaultValue = STATUS_VALUE_ALL) String state) {
         log.info("Получен запрос GET по пути /bookings/owner");
         validationService.validateUser(userId);
-        List<Booking> bookings = bookingService.getBookingsForItemsOwned(userId, state);
+        QueryParam queryParam = validationService.validateQueryParam(state);
+        List<Booking> bookings = bookingService.getBookingsForItemsOwned(from, size, userId, queryParam);
         return BookingMapper.toOwnersBookingDtoList(bookings);
     }
 
@@ -79,12 +102,5 @@ public class BookingController {
         validationService.validateStatusUpdateRequest(bookingForUpdate, userId);
         Booking bookingToReturn = bookingService.update(bookingForUpdate, userId, approved);
         return BookingMapper.toOwnersBookingDto(bookingToReturn);
-    }
-
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable(ID_PATH_VARIABLE_KEY) Long id, @RequestHeader(USER_HEADER) Long userId) {
-        log.info("Получен запрос DELETE по пути /bookings по id {}", id);
-        Booking booking = bookingService.findById(id, userId);
-        bookingService.delete(booking);
     }
 }

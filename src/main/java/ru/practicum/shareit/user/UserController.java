@@ -51,7 +51,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable(ID_PATH_VARIABLE_KEY) Long id) {
+    public void remove(@PathVariable(ID_PATH_VARIABLE_KEY) Long id) {
         log.info("Получен запрос DELETE по пути /users по id {}", id);
         userService.delete(id);
     }

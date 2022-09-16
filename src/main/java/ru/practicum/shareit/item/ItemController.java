@@ -14,16 +14,20 @@ import ru.practicum.shareit.item.model.*;
 import ru.practicum.shareit.item.service.CommentMapper;
 import ru.practicum.shareit.item.service.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.requests.service.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
+@Validated
 @RequiredArgsConstructor
 @RequestMapping("/items")
 public class ItemController {
@@ -34,18 +38,29 @@ public class ItemController {
     private final UserService userService;
     private final BookingService bookingService;
     private final ValidationService validationService;
+    private final ItemRequestService requestService;
 
     @GetMapping()
-    public List<OutgoingItemDto> getAll(@RequestHeader(USER_HEADER) Long userId) {
+    public List<OutgoingItemDto> getAll(@RequestHeader(USER_HEADER) Long userId,
+                                        @PositiveOrZero @RequestParam(
+                                                value = "from",
+                                                required = false,
+                                                defaultValue = "0")
+                                        Integer from,
+                                        @Min(1) @RequestParam(
+                                                value = "size",
+                                                required = false,
+                                                defaultValue = "5")
+                                        Integer size) {
         log.info("Получен запрос GET по пути /items");
-        List<Item> items = itemService.getItemsByUserId(userId);
+        List<Item> items = itemService.getItemsByUserId(from, size, userId);
         return items.stream()
                 .map(item -> appendItemDto(item.getId(), userId))
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public OutgoingItemDto get(@PathVariable(ID_PATH_VARIABLE_KEY) Long itemId, @RequestHeader(USER_HEADER) Long userId) {
+    public OutgoingItemDto getItem(@PathVariable(ID_PATH_VARIABLE_KEY) Long itemId, @RequestHeader(USER_HEADER) Long userId) {
         log.info("Получен запрос GET по пути /items по id {}", itemId);
         return appendItemDto(itemId, userId);
     }
@@ -57,6 +72,9 @@ public class ItemController {
         log.info("Получен запрос POST по пути /items для добавления вещи: {}", incomingItemDto);
         User user = userService.findById(userId);
         Item item = ItemMapper.toItem(incomingItemDto, user);
+        if (incomingItemDto.getRequestId() != null) {
+            item.setRequest(requestService.findById(incomingItemDto.getRequestId()));
+        }
         Item addedItem = itemService.save(item);
         return appendItemDto(addedItem.getId(), userId);
     }
@@ -85,31 +103,51 @@ public class ItemController {
         Item item = ItemMapper.toItem(incomingItemDto, user);
         validationService.validateItemOwner(itemId, userId);
         validationService.validateUser(item.getOwner().getId());
+        if (incomingItemDto.getRequestId() != null) {
+            item.setRequest(requestService.findById(incomingItemDto.getRequestId()));
+        }
         Item updatedItem = itemService.update(itemId, userId, item);
         return appendItemDto(updatedItem.getId(), userId);
     }
 
     @GetMapping("/search")
-    public List<OutgoingItemDto> search(@RequestHeader(USER_HEADER) Long userId, @RequestParam("text") String text) {
+    public List<OutgoingItemDto> search(@RequestHeader(USER_HEADER) Long userId, @RequestParam("text") String text,
+                                        @PositiveOrZero @RequestParam(
+                                                value = "from",
+                                                required = false,
+                                                defaultValue = "0")
+                                        Integer from,
+                                        @Min(1) @RequestParam(
+                                                value = "size",
+                                                required = false,
+                                                defaultValue = "5")
+                                        Integer size) {
         log.info("Получен запрос GET по пути /items/search со значением {}", text);
-        if (validationService.validateQueryString(text)) {
+        if (validationService.validateQueryField(text)) {
             return new ArrayList<>();
         }
-        List<Item> items = itemService.search(text);
+        List<Item> items = itemService.search(from, size, text);
         return items.stream()
                 .map(item -> appendItemDto(item.getId(), userId))
                 .collect(Collectors.toList());
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@RequestHeader(USER_HEADER) Long userId,
+    public void remove(@RequestHeader(USER_HEADER) Long userId,
                        @PathVariable(ID_PATH_VARIABLE_KEY) Long itemId) {
         log.info("Получен запрос DELETE по пути /items по id {}", itemId);
         validationService.validateItemOwner(itemId, userId);
         itemService.delete(userId, itemId);
     }
 
-    private OutgoingItemDto appendItemDto(Long itemId, Long userId) { // вынесено, чтобы не добавлять сервисы в мапперы
+    public List<OutgoingItemDto> getAllByRequestId(Long requestId, Long userId) {
+        List<Item> items = itemService.getAllByRequestId(requestId);
+        return items.stream()
+                .map(item -> appendItemDto(item.getId(), userId))
+                .collect(Collectors.toList());
+    }
+
+    private OutgoingItemDto appendItemDto(Long itemId, Long userId) {
         Item item = itemService.findById(itemId);
         Booking lastBooking = bookingService.getLastBooking(itemId, userId);
         GuestBookingDto lastBookingDto = BookingMapper.toGuestBookingDto(lastBooking);

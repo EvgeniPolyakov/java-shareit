@@ -2,17 +2,17 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.QueryParam;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -20,56 +20,49 @@ import java.util.List;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
-    private static final String UNKNOWN_STATUS_MESSAGE = "Unknown state: %s";
     private static final String BOOKING_NOT_FOUND_MESSAGE = "Бронирование c id %s не найдено.";
 
     private final BookingRepository repository;
 
     @Override
-    public List<Booking> getBookingsMadeByUser(Long userId, String state) {
-        log.info("Получение списка бронирований со статусом {} у пользователя {}", state, userId);
-        QueryParam queryParam = Arrays.stream(QueryParam.values())
-                .filter(param -> param.name().equals(state))
-                .findFirst()
-                .orElseThrow(() -> new BadRequestException((String.format(UNKNOWN_STATUS_MESSAGE, state))));
+    public List<Booking> getBookingsMadeByUser(Integer from, Integer size, Long userId, QueryParam queryParam) {
+        log.info("Получение списка бронирований со статусом {} у пользователя {}", queryParam.name(), userId);
+        Pageable pageable = PageRequest.of(from / size, size);
         switch (queryParam) {
             case WAITING:
-                return repository.getAllByBookerIdAndStatus(userId, Status.WAITING);
+                return repository.getAllByBookerIdAndStatus(userId, Status.WAITING, pageable);
             case REJECTED:
-                return repository.getAllByBookerIdAndStatus(userId, Status.REJECTED);
+                return repository.getAllByBookerIdAndStatus(userId, Status.REJECTED, pageable);
             case PAST:
-                return repository.getAllByBookerIdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now());
+                return repository.getAllByBookerIdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now(), pageable);
             case FUTURE:
-                return repository.getAllByBookerIdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
+                return repository.getAllByBookerIdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now(), pageable);
             case CURRENT:
                 return repository.getAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, LocalDateTime.now(),
-                        LocalDateTime.now());
+                        LocalDateTime.now(), pageable);
             default:
-                return repository.getAllByBookerIdOrderByStartDesc(userId);
+                return repository.getAllByBookerIdOrderByStartDesc(userId, pageable);
         }
     }
 
     @Override
-    public List<Booking> getBookingsForItemsOwned(Long userId, String state) {
-        log.info("Получение всех бронирований для вещей со статусом {} у пользователя {}", state, userId);
-        QueryParam queryParam = Arrays.stream(QueryParam.values())
-                .filter(param -> param.name().equals(state))
-                .findFirst()
-                .orElseThrow(() -> new BadRequestException(String.format(UNKNOWN_STATUS_MESSAGE, state)));
+    public List<Booking> getBookingsForItemsOwned(Integer from, Integer size, Long userId, QueryParam queryParam) {
+        log.info("Получение всех бронирований для вещей со статусом {} у пользователя {}", queryParam.name(), userId);
+        Pageable pageable = PageRequest.of(from / size, size);
         switch (queryParam) {
             case WAITING:
-                return repository.getAllByItemOwnerIdAndStatus(userId, Status.WAITING);
+                return repository.getAllByItemOwnerIdAndStatus(userId, Status.WAITING, pageable);
             case REJECTED:
-                return repository.getAllByItemOwnerIdAndStatus(userId, Status.REJECTED);
+                return repository.getAllByItemOwnerIdAndStatus(userId, Status.REJECTED, pageable);
             case PAST:
-                return repository.getAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now());
+                return repository.getAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now(), pageable);
             case FUTURE:
-                return repository.getAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
+                return repository.getAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now(), pageable);
             case CURRENT:
                 return repository.getAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
-                        LocalDateTime.now(), LocalDateTime.now());
+                        LocalDateTime.now(), LocalDateTime.now(), pageable);
             default:
-                return repository.getAllByItemOwnerIdOrderByStartDesc(userId);
+                return repository.getAllByItemOwnerIdOrderByStartDesc(userId, pageable);
         }
     }
 
@@ -110,13 +103,6 @@ public class BookingServiceImpl implements BookingService {
             booking.setStatus(Status.REJECTED);
         }
         return repository.save(booking);
-    }
-
-    @Override
-    @Transactional
-    public void delete(Booking booking) {
-        log.info("Удаление бронирования с id {}", booking.getId());
-        repository.delete(booking);
     }
 
     @Override

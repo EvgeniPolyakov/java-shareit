@@ -6,13 +6,13 @@ import java.util.List;
 
 public interface ItemRequestService {
 
-    List<ItemRequest> getAll();
+    List<ItemRequest> getAll(Integer from, Integer size, Long userId);
 
     ItemRequest save(ItemRequest request);
 
     ItemRequest update(Long id, ItemRequest request);
 
-    void delete(Long id);
-
     ItemRequest findById(Long id);
+
+    List<ItemRequest> getOwn(Long userId);
 }
