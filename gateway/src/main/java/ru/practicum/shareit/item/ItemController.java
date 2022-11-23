@@ -60,7 +60,7 @@ public class ItemController {
                                                  value = SIZE_PARAM,
                                                  required = false,
                                                  defaultValue = "10")
-                                             Integer size) {
+                                         Integer size) {
         return itemClient.search(userId, text, from, size);
     }
 
