@@ -2,7 +2,7 @@
 ShareIt (pet project)
 </h1>
 
-'ShareIt' is a test project done while studying on [Yandex.Practicum](https://practicum.yandex.ru) platform.
+'ShareIt' is a test project done while studying at [Yandex.Practicum](https://practicum.yandex.ru).
 It represents back-end logics for an item sharing service.
 
 ## Structure:
@@ -24,8 +24,8 @@ Project consists of two modules:
 
 ## Tech stack:
 
-Spring Boot, Maven, Hibernate, Lombok, PostgreSQL, H2, Docker
-92% code coverage by JUnit and Mockito tests
+* Spring Boot, Maven, Hibernate, Lombok, PostgreSQL, H2, Docker
+* 92% code coverage by JUnit and Mockito tests
 
 ## Launch:
 
